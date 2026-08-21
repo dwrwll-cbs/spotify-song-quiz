@@ -1,0 +1,10 @@
+{
+  "name": "spotify-song-quiz",
+  "version": "1.0.0",
+  "description": "Full-stack Spotify Song Quiz application with multiplayer rooms",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "start:server": "npm run dev --prefix server",
+    "start:client": "npm run dev --prefix client"
+  }
+}
