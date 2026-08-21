@@ -50,7 +50,6 @@ export default function App() {
 
   const handleCreateRoom = ({ userName, avatar, playlist }) => {
     socket.emit('create-room', { hostId: userId, hostName: userName, avatar });
-    // Wait for room-created socket event, then set playlist
     socket.once('room-created', (room) => {
       socket.emit('set-playlist', { roomId: room.id, playlist });
     });
@@ -71,9 +70,9 @@ export default function App() {
     socket.emit('start-game', { roomId });
   };
 
-  const handleSubmitGuess = (guess, isManualHit) => {
+  const handleSubmitGuess = (guess) => {
     if (!roomId) return;
-    socket.emit('submit-guess', { roomId, userId, guess, isManualHit });
+    socket.emit('submit-guess', { roomId, userId, guess });
   };
 
   const handleRevealAnswer = () => {
@@ -102,6 +101,7 @@ export default function App() {
         isHost={isHost}
         audioHostOnly={roomState?.config?.audioHostOnly}
         status={roomState?.status}
+        snippetDuration={roomState?.config?.snippetDuration || 10}
       />
 
       {!roomState ? (

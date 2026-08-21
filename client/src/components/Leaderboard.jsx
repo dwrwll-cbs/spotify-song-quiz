@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, CheckCircle2 } from 'lucide-react';
+import { Trophy, CheckCircle2, Music, User } from 'lucide-react';
 
 export default function Leaderboard({ players }) {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
@@ -11,9 +11,9 @@ export default function Leaderboard({ players }) {
         <span>Placar da Partida</span>
       </div>
 
-      <div className="players-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+      <div className="players-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
         {sortedPlayers.map((player, idx) => (
-          <div key={player.id} className={`player-card ${player.guessed ? 'guessed' : ''}`}>
+          <div key={player.id} className={`player-card ${(player.guessedTitle || player.guessedArtist) ? 'guessed' : ''}`}>
             <div className="player-name">
               <span style={{ fontWeight: '800', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                 #{idx + 1}
@@ -22,8 +22,19 @@ export default function Leaderboard({ players }) {
               <span>{player.name}</span>
             </div>
 
-            <div className="flex-row">
-              {player.guessed && <CheckCircle2 size={16} color="#1db954" />}
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <div className="guess-icons">
+                {player.guessedTitle && (
+                  <span className="mini-badge title-badge" title="Acertou o título">
+                    <Music size={12} />
+                  </span>
+                )}
+                {player.guessedArtist && (
+                  <span className="mini-badge artist-badge" title="Acertou o artista">
+                    <User size={12} />
+                  </span>
+                )}
+              </div>
               <span className="player-score">{player.score} pts</span>
             </div>
           </div>

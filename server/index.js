@@ -20,7 +20,7 @@ const io = new Server(server, {
   }
 });
 
-// Demo tracks fallback for instant out-of-the-box testing if no Spotify API key is provided
+// Demo tracks fallback
 const DEMO_PLAYLIST = {
   id: 'demo-hits',
   name: 'Global Hits (Demo)',
@@ -65,7 +65,7 @@ const DEMO_PLAYLIST = {
     {
       id: 'demo-6',
       title: 'Stay',
-      artist: 'The Kid LAROI & Justin Bieber',
+      artist: 'The Kid LAROI, Justin Bieber',
       albumCover: 'https://upload.wikimedia.org/wikipedia/en/0/0c/The_Kid_Laroi_and_Justin_Bieber_-_Stay.png',
       previewUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo112/v4/0d/d2/88/0dd28892-d621-c454-e6ed-3f41c3fffa76/mzaf_9706307130248232924.plus.aac.p.m4a'
     }
@@ -92,14 +92,17 @@ app.post('/api/playlist', async (req, res) => {
     }
     return res.json(data);
   } catch (err) {
-    // If Spotify API key is not configured or failed, check if user typed 'demo' or offer demo playlist
     if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
       return res.status(500).json({ error: err.message });
     } else {
-      // Fallback demo response if credentials not supplied
       return res.json(DEMO_PLAYLIST);
     }
   }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', rooms: roomManager.rooms.size });
 });
 
 // Socket.IO real-time multiplayer logic
@@ -117,7 +120,8 @@ io.on('connection', (socket) => {
   function startRoundTimer(room) {
     if (room.timerInterval) clearInterval(room.timerInterval);
 
-    room.timerSeconds = room.config.sampleDuration;
+    // Timer runs for answerTime (the time players have to guess), NOT snippetDuration
+    room.timerSeconds = room.config.answerTime;
     broadcastRoomUpdate(room.id);
 
     room.timerInterval = setInterval(() => {
@@ -141,6 +145,10 @@ io.on('connection', (socket) => {
     currentUserId = hostId;
 
     const room = roomManager.createRoom(roomId, hostId, hostName, avatar);
+    // Update socket id for host
+    const hostPlayer = room.players.get(hostId);
+    if (hostPlayer) hostPlayer.socketId = socket.id;
+
     socket.emit('room-created', roomManager.serializeRoom(roomId));
   });
 
@@ -189,11 +197,7 @@ io.on('connection', (socket) => {
     room.status = 'PLAYING';
     room.currentTrackIndex = 0;
     room.playedTrackIndices = [];
-    room.players.forEach(p => {
-      p.score = 0;
-      p.guessed = false;
-      p.lastPoints = 0;
-    });
+    roomManager.resetPlayerScores(room);
 
     // Select first track
     pickNextTrack(room);
@@ -221,10 +225,12 @@ io.on('connection', (socket) => {
     room.playedTrackIndices.push(randIndex);
     const selectedTrack = room.tracks[randIndex];
 
-    // Determine start offset (0 or random offset up to 15s if track preview is 30s)
+    // Determine start offset
     let startOffset = 0;
     if (room.config.startPosition === 'random') {
-      startOffset = Math.floor(Math.random() * 12);
+      // Max offset so snippet doesn't exceed 30s preview
+      const maxOffset = Math.max(0, 30 - room.config.snippetDuration);
+      startOffset = Math.floor(Math.random() * maxOffset);
     }
 
     room.currentTrack = {
@@ -233,48 +239,70 @@ io.on('connection', (socket) => {
     };
 
     // Reset player round guess flags
-    room.players.forEach(p => {
-      p.guessed = false;
-      p.lastPoints = 0;
-    });
+    roomManager.resetPlayerRound(room);
 
     return true;
   }
 
-  socket.on('submit-guess', ({ roomId, userId, guess, isManualHit }) => {
+  socket.on('submit-guess', ({ roomId, userId, guess }) => {
     const room = roomManager.getRoom(roomId);
     if (!room || room.status !== 'PLAYING') return;
 
     const player = room.players.get(userId);
-    if (!player || player.guessed) return;
+    if (!player) return;
 
-    let isCorrect = false;
-    if (isManualHit) {
-      isCorrect = true;
-    } else {
-      isCorrect = roomManager.evaluateGuess(guess, room.currentTrack);
+    // If already guessed both, skip
+    if (player.guessedTitle && player.guessedArtist) return;
+
+    const { titleMatch, artistMatch } = roomManager.evaluateGuess(guess, room.currentTrack);
+
+    let pointsEarned = 0;
+    let newTitleMatch = false;
+    let newArtistMatch = false;
+
+    // Award title points if not already guessed
+    if (titleMatch && !player.guessedTitle) {
+      player.guessedTitle = true;
+      const titlePoints = 300 + (room.timerSeconds * 30);
+      player.titlePoints = titlePoints;
+      player.score += titlePoints;
+      pointsEarned += titlePoints;
+      newTitleMatch = true;
     }
 
-    if (isCorrect) {
-      player.guessed = true;
-      // Points based on remaining time (e.g. 500 base + 50 * remaining seconds)
-      const points = 500 + (room.timerSeconds * 50);
-      player.score += points;
-      player.lastPoints = points;
-
-      socket.emit('guess-result', { correct: true, points });
-      
-      // Check if all active players guessed correctly
-      const allGuessed = Array.from(room.players.values()).every(p => p.guessed);
-      if (allGuessed) {
-        if (room.timerInterval) clearInterval(room.timerInterval);
-        room.status = 'REVEALED';
-      }
-      
-      broadcastRoomUpdate(roomId);
-    } else {
-      socket.emit('guess-result', { correct: false, points: 0 });
+    // Award artist points if not already guessed
+    if (artistMatch && !player.guessedArtist) {
+      player.guessedArtist = true;
+      const artPoints = 200 + (room.timerSeconds * 20);
+      player.artistPoints = artPoints;
+      player.score += artPoints;
+      pointsEarned += artPoints;
+      newArtistMatch = true;
     }
+
+    if (pointsEarned > 0) {
+      player.lastPoints += pointsEarned;
+    }
+
+    // Send result back to the player who guessed
+    socket.emit('guess-result', {
+      titleMatch: newTitleMatch,
+      artistMatch: newArtistMatch,
+      alreadyGuessedTitle: player.guessedTitle,
+      alreadyGuessedArtist: player.guessedArtist,
+      points: pointsEarned
+    });
+
+    // Check if all active players guessed both
+    const allFullyGuessed = Array.from(room.players.values()).every(
+      p => p.guessedTitle && p.guessedArtist
+    );
+    if (allFullyGuessed) {
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      room.status = 'REVEALED';
+    }
+
+    broadcastRoomUpdate(roomId);
   });
 
   socket.on('reveal-answer', ({ roomId }) => {
@@ -307,11 +335,7 @@ io.on('connection', (socket) => {
     room.currentTrackIndex = 0;
     room.playedTrackIndices = [];
     room.currentTrack = null;
-    room.players.forEach(p => {
-      p.score = 0;
-      p.guessed = false;
-      p.lastPoints = 0;
-    });
+    roomManager.resetPlayerScores(room);
     broadcastRoomUpdate(roomId);
   });
 

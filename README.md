@@ -1,67 +1,103 @@
-# 🎵 Spotify Song Quiz (Multiplayer)
+# 🎵 SongQuiz — Multiplayer Spotify Music Quiz
 
-Aplicativo web completo de **quiz de músicas** inspirado em jogos de adivinhar músicas, integrado à API do Spotify com suporte a salas multiplayer em tempo real.
+Quiz de músicas multiplayer com playlists do Spotify. Ouça trechos, adivinhe a música e o artista, ganhe pontos pela velocidade!
 
 ---
 
 ## 🚀 Funcionalidades
 
-1. **Importação de Playlists do Spotify**: Busca músicas de qualquer playlist pública via API do Spotify com fallback inteligente via iTunes Search API para garantir áudio de 30s em todas as músicas.
-2. **Configuração Customizada de Partida**:
-   - Escolha de 5, 10, 15 ou 20 músicas por rodada.
-   - Trechos de 5s, 10s, 15s, 20s ou 30s.
-   - Posição do áudio (Início vs Aleatório).
-   - **Modo Festa / Áudio Apenas no Host**: Opção para o som sair somente no dispositivo do Host.
-3. **Multiplayer com Convite em Tempo Real**:
-   - Criação de sala com código de 6 dígitos e link de convite (`?room=CÓDIGO`).
-   - Placar ao vivo sincronizado via Socket.IO.
-   - Sistema de pontuação baseado no tempo de resposta + botão manual "Acertei".
-4. **Interface e Estética**:
-   - Design moderno com tema dark Spotify neon, glassmorphism e animações.
-   - 100% responsivo para celulares e computadores.
+- **Importar playlists do Spotify** (API oficial + fallback iTunes)
+- **Configuração customizada**: duração do trecho (1-30s), tempo de resposta (30-120s), posição aleatória
+- **Multiplayer em tempo real** com salas e convite por link/código
+- **Pontuação separada** para título e artista
+- **Loop de áudio** durante a rodada
+- **Modo Festa**: som apenas no host
+- **Interface responsiva** com tema Spotify
 
 ---
 
-## 🛠️ Como Instalar e Rodar
+## 🛠️ Setup
 
-### 1. Instalar dependências (Backend e Frontend)
+### Pré-requisitos
 
-No terminal da pasta `spotify-quiz`:
+- Node.js 18+
+- Credenciais da API do Spotify (opcional — funciona sem com playlist demo)
+
+### 1. Obter credenciais do Spotify (opcional)
+
+1. Acesse [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Crie um app
+3. Copie `Client ID` e `Client Secret`
+
+### 2. Instalar dependências
 
 ```bash
-# Na pasta server
-cd server
-npm install
-
-# Na pasta client
-cd ../client
-npm install
+cd server && npm install
+cd ../client && npm install
 ```
 
-### 2. Configurar Variáveis de Ambiente (Opcional)
+### 3. Configurar variáveis de ambiente
 
-Crie um arquivo `.env` na pasta `server/` (baseado no `server/.env.example`):
-
+**Server** — crie `server/.env`:
 ```env
 SPOTIFY_CLIENT_ID=seu_client_id
 SPOTIFY_CLIENT_SECRET=seu_client_secret
 PORT=3001
 ```
 
-> **Nota:** Se você não configurar as credenciais do Spotify no `.env`, o aplicativo funcionará perfeitamente utilizando a playlist de demonstração integrada.
-
-### 3. Executar o Projeto
-
-**Iniciar o Servidor (Backend):**
-```bash
-cd server
-npm run dev
+**Client** — crie `client/.env`:
+```env
+VITE_SERVER_URL=http://localhost:3001
 ```
 
-**Iniciar a Aplicação Web (Frontend):**
+### 4. Executar
+
 ```bash
+# Terminal 1 — Backend
+cd server
+npm run dev
+
+# Terminal 2 — Frontend
 cd client
 npm run dev
 ```
 
-Abra o navegador em `http://localhost:5173`. Para testar o multiplayer, abra um segundo navegador ou aba anônima com o link de convite!
+Abra `http://localhost:5173`
+
+---
+
+## 🌐 Deploy
+
+### Frontend (Vercel)
+
+1. No Vercel, aponte o root para `client/`
+2. Adicione a variável `VITE_SERVER_URL` com a URL do backend
+
+### Backend (Render / Railway)
+
+1. Aponte o root para `server/`
+2. Build command: `npm install`
+3. Start command: `npm start`
+4. Adicione as env vars do Spotify
+
+> ⚠️ **Vercel não suporta WebSockets.** O backend (Socket.IO) precisa ficar num serviço que suporte conexões persistentes.
+
+---
+
+## 🎮 Como Jogar
+
+1. Crie uma sala e cole o link de uma playlist do Spotify
+2. Compartilhe o código/link com seus amigos
+3. Configure: quantas músicas, duração do trecho, tempo de resposta
+4. Ouça o trecho e adivinhe a música e/ou artista
+5. Pontuação baseada na velocidade — acertar rápido = mais pontos
+6. Placar ao vivo durante a partida
+7. Resultado final com classificação
+
+---
+
+## Stack
+
+- **Frontend**: React + Vite + Lucide Icons + Canvas Confetti
+- **Backend**: Express + Socket.IO
+- **API**: Spotify Web API (Client Credentials) + iTunes Search fallback

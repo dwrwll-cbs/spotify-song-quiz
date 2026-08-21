@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Check, Eye, SkipForward, Music, Award, HelpCircle } from 'lucide-react';
+import { socket } from '../socket.js';
+import { Music, Award, Eye, SkipForward, Send, CheckCircle, XCircle } from 'lucide-react';
 
 export default function GameBoard({
   roomState,
@@ -9,118 +10,147 @@ export default function GameBoard({
   onRevealAnswer,
   onNextTrack
 }) {
-  const { currentTrack, currentTrackIndex, totalSongs, timerSeconds, status, players } = roomState;
+  const { currentTrack, currentTrackIndex, totalSongs, timerSeconds, status, players, config } = roomState;
   const [guessInput, setGuessInput] = useState('');
-  const [feedback, setFeedback] = useState(null);
+  const [guessResult, setGuessResult] = useState(null); // { titleMatch, artistMatch, points }
+  const [shakeInput, setShakeInput] = useState(false);
 
   const me = players.find((p) => p.id === userId);
   const isRevealed = status === 'REVEALED';
+  const guessedTitle = me?.guessedTitle || false;
+  const guessedArtist = me?.guessedArtist || false;
+  const fullyGuessed = guessedTitle && guessedArtist;
 
   useEffect(() => {
-    // Reset local guess input on track change
     setGuessInput('');
-    setFeedback(null);
+    setGuessResult(null);
   }, [currentTrackIndex]);
+
+  // Listen for guess results
+  useEffect(() => {
+    const handleResult = (result) => {
+      setGuessResult(result);
+      if (!result.titleMatch && !result.artistMatch && result.points === 0) {
+        // Wrong guess — shake animation
+        setShakeInput(true);
+        setTimeout(() => setShakeInput(false), 500);
+      } else {
+        // Clear input on correct
+        setGuessInput('');
+      }
+    };
+
+    socket.on('guess-result', handleResult);
+    return () => socket.off('guess-result', handleResult);
+  }, []);
 
   const handleGuessSubmit = (e) => {
     e.preventDefault();
-    if (!guessInput.trim() || me?.guessed || isRevealed) return;
-
-    onSubmitGuess(guessInput.trim(), false);
+    if (!guessInput.trim() || fullyGuessed || isRevealed) return;
+    onSubmitGuess(guessInput.trim());
   };
 
-  const handleManualHit = () => {
-    if (me?.guessed || isRevealed) return;
-    onSubmitGuess('ACERTEI', true);
-  };
+  const timerColor = timerSeconds <= 5 ? '#ef4444' : timerSeconds <= 10 ? '#f59e0b' : 'var(--spotify-green)';
 
   return (
-    <div className="glass-card" style={{ maxWidth: '720px', margin: '0 auto' }}>
+    <div className="glass-card game-board" style={{ maxWidth: '720px', margin: '0 auto' }}>
       {/* Header Info */}
-      <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '16px' }}>
-        <div style={{ fontWeight: '700', color: 'var(--spotify-green)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className="game-header">
+        <div className="game-track-info">
           <Music size={18} />
           <span>Música {currentTrackIndex + 1} de {totalSongs}</span>
         </div>
-        <div style={{ fontWeight: '800', fontSize: '1.1rem' }}>
-          Sua Pontuação: <span style={{ color: 'var(--spotify-green)' }}>{me?.score || 0} pts</span>
+        <div className="game-score">
+          <Award size={18} />
+          <span>{me?.score || 0} pts</span>
         </div>
       </div>
 
-      {/* Playing / Revealing State */}
+      {/* Playing State */}
       {!isRevealed ? (
-        <div className="text-center" style={{ padding: '20px 0' }}>
+        <div className="text-center game-playing">
+          {/* Audio Visualizer */}
           <div className="visualizer">
             <div className="v-bar"></div>
             <div className="v-bar"></div>
             <div className="v-bar"></div>
             <div className="v-bar"></div>
             <div className="v-bar"></div>
+            <div className="v-bar"></div>
+            <div className="v-bar"></div>
           </div>
 
+          {/* Timer */}
           <div className="timer-container">
-            <div className="timer-circle">
-              {timerSeconds}
+            <div className="timer-circle" style={{ borderColor: timerColor, boxShadow: `0 0 24px ${timerColor}33` }}>
+              <span style={{ color: timerColor }}>{timerSeconds}</span>
             </div>
-            <div className="timer-label">Segundos Restantes</div>
+            <div className="timer-label">segundos restantes</div>
           </div>
 
-          {me?.guessed ? (
-            <div style={{ color: 'var(--spotify-green)', fontWeight: '800', fontSize: '1.2rem', margin: '16px 0' }}>
-              ✓ Você acertou! (+{me.lastPoints} pts)
+          {/* Guess Status Badges */}
+          <div className="guess-badges">
+            <div className={`guess-badge ${guessedTitle ? 'correct' : ''}`}>
+              {guessedTitle ? <CheckCircle size={16} /> : <XCircle size={16} />}
+              <span>Título {guessedTitle ? `✓ (+${me?.titlePoints || 0})` : ''}</span>
+            </div>
+            <div className={`guess-badge ${guessedArtist ? 'correct' : ''}`}>
+              {guessedArtist ? <CheckCircle size={16} /> : <XCircle size={16} />}
+              <span>Artista {guessedArtist ? `✓ (+${me?.artistPoints || 0})` : ''}</span>
+            </div>
+          </div>
+
+          {/* Guess Input */}
+          {fullyGuessed ? (
+            <div className="guess-complete">
+              ✨ Você acertou tudo! (+{me?.lastPoints || 0} pts)
             </div>
           ) : (
-            <div style={{ marginTop: '20px' }}>
-              <form onSubmit={handleGuessSubmit} className="flex-row" style={{ gap: '8px', marginBottom: '12px' }}>
+            <form onSubmit={handleGuessSubmit} className="guess-form">
+              <div className={`guess-input-wrapper ${shakeInput ? 'shake' : ''}`}>
                 <input
                   type="text"
-                  className="text-input"
-                  placeholder="Qual é a música ou artista?"
+                  className={`text-input guess-input ${guessedTitle ? 'title-ok' : ''} ${guessedArtist ? 'artist-ok' : ''}`}
+                  placeholder={
+                    guessedTitle ? 'Agora adivinhe o artista...'
+                    : guessedArtist ? 'Agora adivinhe a música...'
+                    : 'Qual é a música ou artista?'
+                  }
                   value={guessInput}
                   onChange={(e) => setGuessInput(e.target.value)}
-                  disabled={me?.guessed}
                   autoFocus
                 />
-                <button type="submit" className="btn btn-primary" disabled={!guessInput.trim()}>
-                  Enviar
+                <button type="submit" className="guess-send-btn" disabled={!guessInput.trim()}>
+                  <Send size={20} />
                 </button>
-              </form>
-
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleManualHit}
-                style={{ width: '100%', borderColor: 'var(--spotify-green)', color: 'var(--spotify-green)' }}
-              >
-                <Check size={18} />
-                <span>Acertei! (Pontuar)</span>
-              </button>
-            </div>
+              </div>
+              {guessResult && !guessResult.titleMatch && !guessResult.artistMatch && guessResult.points === 0 && (
+                <div className="guess-wrong">Tente novamente!</div>
+              )}
+            </form>
           )}
         </div>
       ) : (
         /* Revealed State */
-        <div className="album-reveal-card" style={{ padding: '20px 0' }}>
+        <div className="album-reveal-card">
           <img
             src={currentTrack?.albumCover || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60'}
             alt={currentTrack?.title}
             className="album-cover"
           />
-
           <div>
             <h2 className="track-title">{currentTrack?.title}</h2>
             <div className="track-artist">{currentTrack?.artist}</div>
           </div>
-
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '8px' }}>
-            Trecho encerrado! Veja quem pontuou no placar abaixo.
-          </div>
+          {!fullyGuessed && (
+            <div className="reveal-miss">Você não acertou tudo dessa vez 😔</div>
+          )}
         </div>
       )}
 
       {/* Host Controls */}
       {isHost && (
-        <div className="flex-row" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', justifyContent: 'center' }}>
+        <div className="host-controls">
           {!isRevealed ? (
             <button className="btn btn-secondary" onClick={onRevealAnswer}>
               <Eye size={18} />

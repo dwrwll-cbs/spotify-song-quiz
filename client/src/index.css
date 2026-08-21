@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 :root {
   --bg-dark: #0a0e17;
   --bg-card: rgba(22, 28, 42, 0.75);
@@ -10,6 +12,9 @@
   --border-color: rgba(255, 255, 255, 0.08);
   --accent-purple: #8b5cf6;
   --accent-pink: #ec4899;
+  --accent-blue: #3b82f6;
+  --danger: #ef4444;
+  --warning: #f59e0b;
   --radius: 16px;
   --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -26,8 +31,9 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(29, 185, 84, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.12) 0%, transparent 45%);
+    radial-gradient(circle at 15% 15%, rgba(29, 185, 84, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 60%);
   background-attachment: fixed;
   overflow-x: hidden;
 }
@@ -35,29 +41,29 @@ body {
 .app-container {
   max-width: 960px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 20px 16px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Header */
+/* ============ HEADER ============ */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 24px;
+  padding-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 1.5rem;
+  gap: 10px;
+  font-size: 1.4rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #ffffff 0%, #1db954 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--spotify-green) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -86,7 +92,7 @@ body {
   letter-spacing: 1px;
 }
 
-/* Card Container */
+/* ============ GLASS CARD ============ */
 .glass-card {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
@@ -114,7 +120,115 @@ body {
   line-height: 1.5;
 }
 
-/* Form Controls */
+/* ============ HOME ============ */
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.home-card {
+  max-width: 560px;
+  width: 100%;
+}
+
+.home-logo {
+  font-size: 3.5rem;
+  margin-bottom: 8px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.home-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 0%, var(--spotify-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.avatar-option {
+  font-size: 1.4rem;
+  padding: 8px;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.avatar-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.avatar-option.active {
+  background: var(--spotify-green);
+  border-color: var(--spotify-green);
+  box-shadow: 0 0 12px var(--spotify-green-glow);
+}
+
+.mode-selector {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.mode-btn.active {
+  background: var(--spotify-green);
+  color: #000;
+  border-color: var(--spotify-green);
+  box-shadow: 0 4px 14px var(--spotify-green-glow);
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ============ FORM CONTROLS ============ */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -131,10 +245,16 @@ body {
   gap: 6px;
 }
 
+.input-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
 .text-input {
   width: 100%;
   background: rgba(10, 14, 23, 0.6);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 14px 16px;
   color: var(--text-main);
@@ -149,6 +269,22 @@ body {
   box-shadow: 0 0 0 3px var(--spotify-green-glow);
 }
 
+.text-input.title-ok {
+  border-color: var(--spotify-green);
+  box-shadow: 0 0 0 2px var(--spotify-green-glow);
+}
+
+.text-input.artist-ok {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.text-input.title-ok.artist-ok {
+  border-color: #ffd700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+/* ============ BUTTONS ============ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -194,18 +330,11 @@ body {
   transform: translateY(-1px);
 }
 
-.btn-purple {
-  background: linear-gradient(135deg, var(--accent-purple), #6d28d9);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+.btn-full {
+  width: 100%;
 }
 
-.btn-purple:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-}
-
-/* Grid Selections */
+/* ============ PILL GRID ============ */
 .pill-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -222,6 +351,11 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.pill-option:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .pill-option.active {
@@ -231,18 +365,218 @@ body {
   box-shadow: 0 0 12px var(--spotify-green-glow);
 }
 
-/* Audio Visualizer Animation */
+/* ============ SLIDER ============ */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.range-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--spotify-green);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--spotify-green-glow);
+  transition: transform 0.15s;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--spotify-green);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px var(--spotify-green-glow);
+}
+
+.slider-value {
+  min-width: 48px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--spotify-green);
+  background: rgba(29, 185, 84, 0.12);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* ============ INVITE CARD ============ */
+.config-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.invite-card {
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, rgba(139, 92, 246, 0.10) 100%);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+.invite-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.invite-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.invite-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.invite-code {
+  font-family: monospace;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: var(--spotify-green);
+  text-shadow: 0 0 16px var(--spotify-green-glow);
+}
+
+/* ============ PLAYLIST INFO ============ */
+.playlist-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+.playlist-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.playlist-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.playlist-count {
+  color: var(--spotify-green);
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+/* ============ TOGGLE SWITCH ============ */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-top: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-switch.active {
+  border-color: var(--spotify-green);
+  background: rgba(29, 185, 84, 0.08);
+}
+
+/* ============ AUDIO CONTROLS ============ */
+.audio-controls-bar {
+  background: rgba(22, 28, 42, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+}
+
+.audio-controls-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audio-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.audio-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.audio-btn.active {
+  background: var(--spotify-green);
+  color: #000;
+  border-color: var(--spotify-green);
+}
+
+.audio-btn.loop-active {
+  background: var(--accent-purple);
+  color: #fff;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.audio-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ============ AUDIO VISUALIZER ============ */
 .visualizer {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   height: 48px;
-  margin: 20px 0;
+  margin: 16px 0;
 }
 
 .v-bar {
-  width: 6px;
+  width: 5px;
   background: var(--spotify-green);
   border-radius: 3px;
   animation: pulseHeight 1.2s ease-in-out infinite alternate;
@@ -253,52 +587,200 @@ body {
 .v-bar:nth-child(3) { animation-delay: 0.2s; height: 50%; }
 .v-bar:nth-child(4) { animation-delay: 0.4s; height: 100%; }
 .v-bar:nth-child(5) { animation-delay: 0.15s; height: 60%; }
+.v-bar:nth-child(6) { animation-delay: 0.35s; height: 40%; }
+.v-bar:nth-child(7) { animation-delay: 0.25s; height: 70%; }
 
 @keyframes pulseHeight {
   0% { transform: scaleY(0.3); }
   100% { transform: scaleY(1); }
 }
 
-/* Countdown Timer Circle */
+/* ============ TIMER ============ */
 .timer-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 24px 0;
+  margin: 20px 0;
 }
 
 .timer-circle {
-  width: 110px;
-  height: 110px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   border: 4px solid var(--spotify-green);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  box-shadow: 0 0 24px var(--spotify-green-glow);
   position: relative;
   background: rgba(29, 185, 84, 0.05);
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .timer-label {
-  margin-top: 10px;
+  margin-top: 8px;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 600;
 }
 
-/* Cover & Answer Reveal */
+/* ============ GAME BOARD ============ */
+.game-board {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.game-track-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--spotify-green);
+}
+
+.game-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--spotify-green);
+}
+
+.game-playing {
+  padding: 16px 0;
+}
+
+/* ============ GUESS BADGES ============ */
+.guess-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.guess-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  transition: all 0.3s;
+}
+
+.guess-badge.correct {
+  border-color: var(--spotify-green);
+  background: rgba(29, 185, 84, 0.15);
+  color: var(--spotify-green);
+  animation: correctPulse 0.5s ease-out;
+}
+
+@keyframes correctPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); box-shadow: 0 0 20px var(--spotify-green-glow); }
+  100% { transform: scale(1); }
+}
+
+/* ============ GUESS INPUT ============ */
+.guess-form {
+  margin-top: 16px;
+}
+
+.guess-input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.guess-input {
+  padding-right: 52px;
+}
+
+.guess-send-btn {
+  position: absolute;
+  right: 6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: var(--spotify-green);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.guess-send-btn:hover {
+  background: var(--spotify-green-hover);
+}
+
+.guess-send-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.guess-complete {
+  color: var(--spotify-green);
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin: 16px 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.guess-wrong {
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.reveal-miss {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+/* ============ SHAKE ============ */
+.shake {
+  animation: shake 0.4s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+/* ============ ALBUM REVEAL ============ */
 .album-reveal-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 16px;
+  padding: 24px 0;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -322,27 +804,37 @@ body {
   font-size: 1.05rem;
 }
 
-/* Players Grid / Leaderboard */
+/* ============ HOST CONTROLS ============ */
+.host-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* ============ PLAYERS GRID / LEADERBOARD ============ */
 .players-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .player-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
-  padding: 12px 16px;
+  padding: 12px 14px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: all 0.2s;
 }
 
 .player-card.guessed {
   border-color: var(--spotify-green);
-  background: rgba(29, 185, 84, 0.1);
+  background: rgba(29, 185, 84, 0.08);
 }
 
 .player-name {
@@ -357,27 +849,28 @@ body {
   color: var(--spotify-green);
 }
 
-/* Utilities */
-.flex-row {
+.guess-icons {
   display: flex;
-  gap: 12px;
+  gap: 4px;
+}
+
+.mini-badge {
+  display: flex;
   align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
 }
 
-.flex-wrap {
-  flex-wrap: wrap;
+.mini-badge.title-badge {
+  background: rgba(29, 185, 84, 0.2);
+  color: var(--spotify-green);
 }
 
-.gap-16 {
-  gap: 16px;
-}
-
-.mt-20 {
-  margin-top: 20px;
-}
-
-.text-center {
-  text-align: center;
+.mini-badge.artist-badge {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent-blue);
 }
 
 .badge-host {
@@ -390,19 +883,92 @@ body {
   text-transform: uppercase;
 }
 
-.toggle-switch {
+/* ============ UTILITIES ============ */
+.flex-row {
   display: flex;
+  gap: 12px;
   align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  margin-top: 10px;
-  cursor: pointer;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 640px) {
+  .app-container {
+    padding: 16px 12px;
+  }
+
+  .glass-card {
+    padding: 20px 16px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .avatar-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .invite-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .invite-code {
+    font-size: 1.6rem;
+  }
+
+  .game-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .guess-badges {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pill-grid {
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  }
+
+  .players-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .album-cover {
+    width: 140px;
+    height: 140px;
+  }
+
+  .timer-circle {
+    width: 80px;
+    height: 80px;
+    font-size: 1.8rem;
+  }
+
+  .home-title {
+    font-size: 1.8rem;
+  }
 }
