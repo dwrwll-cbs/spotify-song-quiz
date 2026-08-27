@@ -88,7 +88,13 @@ export default function PlaylistPicker({ onSelectPlaylist, selectedPlaylistId })
                 </div>
                 <div className="playlist-picker-details">
                   <span className="playlist-picker-name">{pl.name}</span>
-                  <span className="playlist-picker-count">{pl.tracks?.total ?? pl.tracks?.length ?? '?'} músicas</span>
+                  <span className="playlist-picker-count">
+                    {typeof pl.tracks?.total === 'number'
+                      ? `${pl.tracks.total} músicas`
+                      : typeof pl.total_tracks === 'number'
+                      ? `${pl.total_tracks} músicas`
+                      : 'Playlist Spotify'}
+                  </span>
                 </div>
               </div>
             ))}

@@ -66,7 +66,7 @@ export default function Home({ onCreateRoom, onJoinRoom, error, spotifyUser, onS
 
         if (playlistSource === 'my-playlists' && selectedPlaylist) {
           // Fetch tracks directly from Spotify (client-side, token never leaves browser)
-          playlistData = await getPlaylistTracksDirect(selectedPlaylist.id);
+          playlistData = await getPlaylistTracksDirect(selectedPlaylist);
           if (!playlistData.tracks?.length) {
             throw new Error('Nenhuma música com áudio preview encontrada nesta playlist.');
           }

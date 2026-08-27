@@ -255,53 +255,76 @@ async function fetchiTunesAudioPreviewClient(artist, title) {
 }
 
 // Fetch playlist tracks directly from Spotify (client-side, no backend needed)
-export async function getPlaylistTracksDirect(playlistId) {
+export async function getPlaylistTracksDirect(playlistInput) {
+  const playlistId = typeof playlistInput === 'string' ? playlistInput : playlistInput?.id;
+  let playlistName = typeof playlistInput === 'object' ? playlistInput.name : 'Spotify Playlist';
+  let playlistImage = typeof playlistInput === 'object' ? playlistInput.images?.[0]?.url : null;
+
   const token = await getValidToken();
-  if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+  let rawItems = [];
 
-  // 1. Metadata
-  const meta = await spotifyFetch(`/playlists/${playlistId}?fields=id,name,images`, token);
-  const playlistName = meta.name || 'Spotify Playlist';
-  const playlistImage = meta.images?.[0]?.url || null;
-
-  // 2. Tracks
-  const tracksData = await spotifyFetch(
-    `/playlists/${playlistId}/tracks?limit=100&fields=items(track(id,name,artists,album,preview_url))`,
-    token
-  );
-
-  const validTracks = [];
-  const rawItems = tracksData.items || [];
-
-  for (const item of rawItems) {
-    const track = item.track;
-    if (!track || !track.name || !track.artists?.length) continue;
-
-    const mainArtist = track.artists.map((a) => a.name).join(', ');
-    let previewUrl = track.preview_url;
-
-    // iTunes fallback if Spotify preview_url is null
-    if (!previewUrl) {
-      previewUrl = await fetchiTunesAudioPreviewClient(track.artists[0].name, track.name);
-    }
-
-    if (previewUrl) {
-      validTracks.push({
-        id: track.id || `track-${Math.random().toString(36).substr(2, 9)}`,
-        title: track.name,
-        artist: mainArtist,
-        albumCover: track.album?.images?.[0]?.url || playlistImage || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60',
-        previewUrl
-      });
+  if (token) {
+    try {
+      // 1. Fetch tracks directly with user token
+      const tracksData = await spotifyFetch(
+        `/playlists/${playlistId}/tracks?limit=100`,
+        token
+      );
+      rawItems = tracksData.items || [];
+    } catch (err) {
+      console.warn('Direct track fetch failed:', err);
     }
   }
 
-  return {
-    id: playlistId,
-    name: playlistName,
-    image: playlistImage,
-    tracks: validTracks,
-    totalFound: validTracks.length
-  };
+  // 2. Process tracks with iTunes fallback if direct fetch succeeded
+  if (rawItems.length > 0) {
+    const validTracks = [];
+    for (const item of rawItems) {
+      const track = item.track;
+      if (!track || !track.name || !track.artists?.length) continue;
+
+      const mainArtist = track.artists.map((a) => a.name).join(', ');
+      let previewUrl = track.preview_url;
+
+      if (!previewUrl) {
+        previewUrl = await fetchiTunesAudioPreviewClient(track.artists[0].name, track.name);
+      }
+
+      if (previewUrl) {
+        validTracks.push({
+          id: track.id || `track-${Math.random().toString(36).substr(2, 9)}`,
+          title: track.name,
+          artist: mainArtist,
+          albumCover: track.album?.images?.[0]?.url || playlistImage || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60',
+          previewUrl
+        });
+      }
+    }
+
+    if (validTracks.length > 0) {
+      return {
+        id: playlistId,
+        name: playlistName,
+        image: playlistImage,
+        tracks: validTracks,
+        totalFound: validTracks.length
+      };
+    }
+  }
+
+  // 3. Fallback to server endpoint if direct client fetch was forbidden or empty
+  const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+  const apiUrl = serverUrl ? `${serverUrl}/api/playlist` : '/api/playlist';
+  
+  const res = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: `https://open.spotify.com/playlist/${playlistId}` })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro ao carregar playlist.');
+  return data;
 }
+
 
