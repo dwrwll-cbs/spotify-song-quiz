@@ -88,7 +88,7 @@ export default function PlaylistPicker({ onSelectPlaylist, selectedPlaylistId })
                 </div>
                 <div className="playlist-picker-details">
                   <span className="playlist-picker-name">{pl.name}</span>
-                  <span className="playlist-picker-count">{pl.tracks?.total || 0} músicas</span>
+                  <span className="playlist-picker-count">{pl.tracks?.total ?? pl.tracks?.length ?? '?'} músicas</span>
                 </div>
               </div>
             ))}

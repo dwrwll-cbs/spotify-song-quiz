@@ -239,3 +239,45 @@ export async function getUserPlaylists(limit = 50, offset = 0) {
   if (!token) return null;
   return spotifyFetch(`/me/playlists?limit=${limit}&offset=${offset}`, token);
 }
+
+// Fetch playlist tracks directly from Spotify (client-side, no backend needed)
+export async function getPlaylistTracksDirect(playlistId) {
+  const token = await getValidToken();
+  if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+
+  // 1. Metadata
+  const meta = await spotifyFetch(`/playlists/${playlistId}?fields=id,name,images`, token);
+  const playlistName = meta.name || 'Spotify Playlist';
+  const playlistImage = meta.images?.[0]?.url || null;
+
+  // 2. Tracks
+  const tracksData = await spotifyFetch(
+    `/playlists/${playlistId}/tracks?limit=100&fields=items(track(id,name,artists,album,preview_url))`,
+    token
+  );
+
+  const validTracks = [];
+  for (const item of (tracksData.items || [])) {
+    const track = item.track;
+    if (!track || !track.name || !track.artists?.length) continue;
+
+    const previewUrl = track.preview_url;
+    if (!previewUrl) continue; // skip tracks without preview (iTunes fallback not available client-side)
+
+    validTracks.push({
+      id: track.id || `track-${Math.random().toString(36).substr(2, 9)}`,
+      title: track.name,
+      artist: track.artists.map(a => a.name).join(', '),
+      albumCover: track.album?.images?.[0]?.url || playlistImage || '',
+      previewUrl
+    });
+  }
+
+  return {
+    id: playlistId,
+    name: playlistName,
+    image: playlistImage,
+    tracks: validTracks,
+    totalFound: validTracks.length
+  };
+}

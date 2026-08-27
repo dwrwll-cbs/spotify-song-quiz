@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Plus, Users, Link2, AlertCircle, Loader } from 'lucide-react';
 import { getApiUrl } from '../socket.js';
-import { getValidToken } from '../spotifyAuth.js';
+import { getPlaylistTracksDirect } from '../spotifyAuth.js';
 import SpotifyLogin from './SpotifyLogin.jsx';
 import PlaylistPicker from './PlaylistPicker.jsx';
 
@@ -65,21 +65,11 @@ export default function Home({ onCreateRoom, onJoinRoom, error, spotifyUser, onS
         let playlistData;
 
         if (playlistSource === 'my-playlists' && selectedPlaylist) {
-          // Use user token to fetch private playlist tracks
-          const token = await getValidToken();
-          if (!token) {
-            setLocalError('Sessão expirada. Faça login novamente.');
-            setLoading(false);
-            return;
+          // Fetch tracks directly from Spotify (client-side, token never leaves browser)
+          playlistData = await getPlaylistTracksDirect(selectedPlaylist.id);
+          if (!playlistData.tracks?.length) {
+            throw new Error('Nenhuma música com áudio preview encontrada nesta playlist.');
           }
-
-          const res = await fetch(getApiUrl('/api/playlist/user-tracks'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accessToken: token, playlistId: selectedPlaylist.id })
-          });
-          playlistData = await res.json();
-          if (!res.ok) throw new Error(playlistData.error || 'Erro ao importar playlist.');
         } else {
           // Original flow — paste URL
           const urlToUse = playlistUrl.trim() || 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M';
