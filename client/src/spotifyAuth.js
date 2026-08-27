@@ -240,6 +240,20 @@ export async function getUserPlaylists(limit = 50, offset = 0) {
   return spotifyFetch(`/me/playlists?limit=${limit}&offset=${offset}`, token);
 }
 
+// Fallback to iTunes search API for preview audio (works in browser CORS)
+async function fetchiTunesAudioPreviewClient(artist, title) {
+  try {
+    const cleanQuery = `${artist} ${title}`.replace(/[\(\)\[\]]/g, '').trim();
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(cleanQuery)}&media=music&entity=song&limit=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.results?.[0]?.previewUrl || null;
+  } catch {
+    return null;
+  }
+}
+
 // Fetch playlist tracks directly from Spotify (client-side, no backend needed)
 export async function getPlaylistTracksDirect(playlistId) {
   const token = await getValidToken();
@@ -257,20 +271,29 @@ export async function getPlaylistTracksDirect(playlistId) {
   );
 
   const validTracks = [];
-  for (const item of (tracksData.items || [])) {
+  const rawItems = tracksData.items || [];
+
+  for (const item of rawItems) {
     const track = item.track;
     if (!track || !track.name || !track.artists?.length) continue;
 
-    const previewUrl = track.preview_url;
-    if (!previewUrl) continue; // skip tracks without preview (iTunes fallback not available client-side)
+    const mainArtist = track.artists.map((a) => a.name).join(', ');
+    let previewUrl = track.preview_url;
 
-    validTracks.push({
-      id: track.id || `track-${Math.random().toString(36).substr(2, 9)}`,
-      title: track.name,
-      artist: track.artists.map(a => a.name).join(', '),
-      albumCover: track.album?.images?.[0]?.url || playlistImage || '',
-      previewUrl
-    });
+    // iTunes fallback if Spotify preview_url is null
+    if (!previewUrl) {
+      previewUrl = await fetchiTunesAudioPreviewClient(track.artists[0].name, track.name);
+    }
+
+    if (previewUrl) {
+      validTracks.push({
+        id: track.id || `track-${Math.random().toString(36).substr(2, 9)}`,
+        title: track.name,
+        artist: mainArtist,
+        albumCover: track.album?.images?.[0]?.url || playlistImage || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60',
+        previewUrl
+      });
+    }
   }
 
   return {
@@ -281,3 +304,4 @@ export async function getPlaylistTracksDirect(playlistId) {
     totalFound: validTracks.length
   };
 }
+
