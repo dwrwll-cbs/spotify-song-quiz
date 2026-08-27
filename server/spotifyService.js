@@ -137,3 +137,75 @@ export async function getPlaylistTracks(playlistId) {
     totalFound: validTracks.length
   };
 }
+
+// ============ User-Authenticated Functions ============
+
+// Fetch user's playlists using their access token
+export async function getUserPlaylists(userAccessToken, limit = 50, offset = 0) {
+  const response = await axios.get('https://api.spotify.com/v1/me/playlists', {
+    headers: { Authorization: `Bearer ${userAccessToken}` },
+    params: { limit, offset }
+  });
+  return response.data;
+}
+
+// Fetch tracks from any playlist (including private) using user's token
+export async function getPlaylistTracksWithToken(playlistId, userAccessToken) {
+  // 1. Metadata
+  let playlistName = 'Spotify Playlist';
+  let playlistImage = null;
+  try {
+    const metaRes = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+      headers: { Authorization: `Bearer ${userAccessToken}` }
+    });
+    playlistName = metaRes.data.name || playlistName;
+    playlistImage = metaRes.data.images?.[0]?.url || null;
+  } catch (err) {
+    if (err.response?.status === 404) {
+      throw new Error('Playlist não encontrada.');
+    }
+    if (err.response?.status === 401) {
+      throw new Error('Token expirado ou inválido. Faça login novamente.');
+    }
+    throw new Error('Erro ao acessar playlist: ' + (err.response?.data?.error?.message || err.message));
+  }
+
+  // 2. Tracks
+  const tracksRes = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+    headers: { Authorization: `Bearer ${userAccessToken}` },
+    params: { limit: 100, fields: 'items(track(id,name,artists,album,preview_url))' }
+  });
+
+  const rawTracks = tracksRes.data.items || [];
+  const validTracks = [];
+
+  for (const item of rawTracks) {
+    const track = item.track;
+    if (!track || !track.name || !track.artists || track.artists.length === 0) continue;
+
+    const mainArtist = track.artists.map(a => a.name).join(', ');
+    let previewUrl = track.preview_url;
+
+    if (!previewUrl) {
+      previewUrl = await fetchiTunesAudioPreview(track.artists[0].name, track.name);
+    }
+
+    if (previewUrl) {
+      validTracks.push({
+        id: track.id || `track-${Math.random().toString(36).substr(2, 9)}`,
+        title: track.name,
+        artist: mainArtist,
+        albumCover: track.album?.images?.[0]?.url || track.album?.images?.[1]?.url || playlistImage || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60',
+        previewUrl: previewUrl
+      });
+    }
+  }
+
+  return {
+    id: playlistId,
+    name: playlistName,
+    image: playlistImage,
+    tracks: validTracks,
+    totalFound: validTracks.length
+  };
+}

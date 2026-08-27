@@ -972,3 +972,339 @@ body {
     font-size: 1.8rem;
   }
 }
+
+/* ============ SPOTIFY LOGIN ============ */
+.btn-spotify-login {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+  color: #000;
+  box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-spotify-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(29, 185, 84, 0.5);
+}
+
+.btn-spotify-login:active {
+  transform: translateY(0);
+}
+
+/* ============ SPOTIFY PROFILE (HOME) ============ */
+.spotify-profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(29, 185, 84, 0.08);
+  border: 1px solid rgba(29, 185, 84, 0.25);
+  border-radius: 14px;
+  padding: 10px 14px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.spotify-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spotify-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--spotify-green);
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.3);
+}
+
+.spotify-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--spotify-green);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.spotify-profile-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.spotify-profile-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.spotify-profile-label {
+  font-size: 0.75rem;
+  color: var(--spotify-green);
+  font-weight: 600;
+}
+
+.btn-spotify-logout {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-spotify-logout:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* ============ NAVBAR SPOTIFY MINI ============ */
+.navbar-spotify-mini {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-spotify-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--spotify-green);
+}
+
+.navbar-spotify-avatar-placeholder {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--spotify-green);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+/* ============ PLAYLIST SOURCE TOGGLE ============ */
+.playlist-source-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.source-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.source-btn.active {
+  background: rgba(29, 185, 84, 0.15);
+  color: var(--spotify-green);
+  border-color: rgba(29, 185, 84, 0.4);
+}
+
+/* ============ PLAYLIST PICKER ============ */
+.playlist-picker {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.playlist-picker-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.playlist-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(10, 14, 23, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  color: var(--text-muted);
+}
+
+.playlist-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.playlist-picker-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--text-muted);
+}
+
+.playlist-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.playlist-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.playlist-picker-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.playlist-picker-item.selected {
+  background: rgba(29, 185, 84, 0.1);
+  border-color: var(--spotify-green);
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.15);
+}
+
+.playlist-picker-img-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.playlist-picker-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.playlist-picker-img-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.playlist-picker-check {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: rgba(29, 185, 84, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.playlist-picker-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.playlist-picker-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-picker-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ============ CALLBACK PAGE ============ */
+.callback-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  min-height: 60vh;
+}
+
+.callback-card {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+}
+
+.callback-icon.error {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+/* ============ RESPONSIVE ADDITIONS ============ */
+@media (max-width: 640px) {
+  .playlist-picker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .playlist-source-toggle {
+    flex-direction: column;
+  }
+}

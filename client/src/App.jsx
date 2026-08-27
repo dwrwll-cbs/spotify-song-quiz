@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { socket } from './socket.js';
+import { getStoredAuth, getSpotifyUser, isLoggedIn, logoutSpotify, handleSpotifyCallback } from './spotifyAuth.js';
 import Navbar from './components/Navbar.jsx';
 import Home from './components/Home.jsx';
 import GameConfig from './components/GameConfig.jsx';
@@ -7,6 +8,7 @@ import GameBoard from './components/GameBoard.jsx';
 import Leaderboard from './components/Leaderboard.jsx';
 import Results from './components/Results.jsx';
 import AudioPlayer from './components/AudioPlayer.jsx';
+import SpotifyCallback from './components/SpotifyCallback.jsx';
 
 export default function App() {
   const [userId] = useState(() => {
@@ -20,6 +22,49 @@ export default function App() {
   const [roomId, setRoomId] = useState(null);
   const [roomState, setRoomState] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Spotify auth state
+  const [spotifyUser, setSpotifyUser] = useState(null);
+  const [isCallback, setIsCallback] = useState(false);
+
+  // Check if we're on the /callback route
+  useEffect(() => {
+    if (window.location.pathname === '/callback') {
+      setIsCallback(true);
+    }
+  }, []);
+
+  // Load Spotify user on mount if already logged in
+  useEffect(() => {
+    if (isCallback) return;
+    async function loadUser() {
+      if (isLoggedIn()) {
+        try {
+          const user = await getSpotifyUser();
+          setSpotifyUser(user);
+        } catch {
+          // Token might be expired, user will see login button
+          setSpotifyUser(null);
+        }
+      }
+    }
+    loadUser();
+  }, [isCallback]);
+
+  const handleAuthComplete = useCallback(async () => {
+    try {
+      const user = await getSpotifyUser();
+      setSpotifyUser(user);
+    } catch {
+      // Ignore
+    }
+    setIsCallback(false);
+  }, []);
+
+  const handleSpotifyLogout = useCallback(() => {
+    logoutSpotify();
+    setSpotifyUser(null);
+  }, []);
 
   useEffect(() => {
     socket.on('room-created', (room) => {
@@ -90,11 +135,20 @@ export default function App() {
     socket.emit('restart-game', { roomId });
   };
 
+  // OAuth callback page
+  if (isCallback) {
+    return (
+      <div className="app-container">
+        <SpotifyCallback onAuthComplete={handleAuthComplete} />
+      </div>
+    );
+  }
+
   const isHost = roomState?.hostId === userId;
 
   return (
     <div className="app-container">
-      <Navbar roomId={roomId} roomState={roomState} />
+      <Navbar roomId={roomId} roomState={roomState} spotifyUser={spotifyUser} />
 
       <AudioPlayer
         currentTrack={roomState?.currentTrack}
@@ -109,6 +163,8 @@ export default function App() {
           onCreateRoom={handleCreateRoom}
           onJoinRoom={handleJoinRoom}
           error={errorMessage}
+          spotifyUser={spotifyUser}
+          onSpotifyLogout={handleSpotifyLogout}
         />
       ) : roomState.status === 'LOBBY' ? (
         <GameConfig

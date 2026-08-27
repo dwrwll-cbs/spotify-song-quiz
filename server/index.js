@@ -3,7 +3,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { parsePlaylistId, getPlaylistTracks } from './spotifyService.js';
+import { parsePlaylistId, getPlaylistTracks, getUserPlaylists, getPlaylistTracksWithToken } from './spotifyService.js';
 import { roomManager } from './roomManager.js';
 
 dotenv.config();
@@ -97,6 +97,68 @@ app.post('/api/playlist', async (req, res) => {
     } else {
       return res.json(DEMO_PLAYLIST);
     }
+  }
+});
+
+// ============ User-Authenticated Endpoints ============
+
+// Fetch user's playlists (requires user access token)
+app.post('/api/playlist/user', async (req, res) => {
+  const { accessToken } = req.body;
+
+  if (!accessToken || typeof accessToken !== 'string') {
+    return res.status(401).json({ error: 'Access token obrigatório.' });
+  }
+
+  // Basic token format validation (prevent injection)
+  if (accessToken.length > 500 || /[\s<>]/.test(accessToken)) {
+    return res.status(400).json({ error: 'Token inválido.' });
+  }
+
+  try {
+    const data = await getUserPlaylists(accessToken);
+    return res.json(data);
+  } catch (err) {
+    if (err.response?.status === 401) {
+      return res.status(401).json({ error: 'Token expirado. Faça login novamente.' });
+    }
+    return res.status(500).json({ error: 'Erro ao buscar playlists.' });
+  }
+});
+
+// Fetch tracks from user's playlist (including private)
+app.post('/api/playlist/user-tracks', async (req, res) => {
+  const { accessToken, playlistId } = req.body;
+
+  if (!accessToken || typeof accessToken !== 'string') {
+    return res.status(401).json({ error: 'Access token obrigatório.' });
+  }
+
+  if (!playlistId || typeof playlistId !== 'string') {
+    return res.status(400).json({ error: 'Playlist ID obrigatório.' });
+  }
+
+  // Validate playlistId format (alphanumeric, max 22 chars)
+  if (!/^[a-zA-Z0-9]{1,30}$/.test(playlistId)) {
+    return res.status(400).json({ error: 'Playlist ID inválido.' });
+  }
+
+  // Basic token format validation
+  if (accessToken.length > 500 || /[\s<>]/.test(accessToken)) {
+    return res.status(400).json({ error: 'Token inválido.' });
+  }
+
+  try {
+    const data = await getPlaylistTracksWithToken(playlistId, accessToken);
+    if (!data.tracks || data.tracks.length === 0) {
+      return res.status(400).json({ error: 'Nenhuma música com áudio preview encontrada.' });
+    }
+    return res.json(data);
+  } catch (err) {
+    if (err.response?.status === 401) {
+      return res.status(401).json({ error: 'Token expirado. Faça login novamente.' });
+    }
+    return res.status(500).json({ error: err.message });
   }
 });
 
